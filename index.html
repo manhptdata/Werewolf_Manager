@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Quản trò Ma Sói - ManhPT-XuyenHT</title>
+    <title>Quản trò Ma Sói - Timer & Bảo vệ</title>
     <style>
         * {
             box-sizing: border-box;
@@ -138,6 +138,15 @@
         .status-alive { background: #2a6b2f; color: #c8ffb0; }
         .status-dead { background: #6b2a2a; color: #ffb0b0; text-decoration: line-through; }
 
+        .protect-status {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #2a6b8b;
+            color: #b8f0ff;
+        }
+
         .role-select {
             background: #3b2b1f;
             padding: 6px 12px;
@@ -153,6 +162,7 @@
 
         .kill-btn { background: #8b3c3c; }
         .revive-btn { background: #3c8b4a; }
+        .protect-btn { background: #2a6b8b; }
 
         .info-bar {
             background: #1f1a14b3;
@@ -163,6 +173,28 @@
             flex-wrap: wrap;
             margin-top: 15px;
             gap: 12px;
+        }
+
+        .timer-bar {
+            background: #2a2a1fb3;
+            border-radius: 60px;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: monospace;
+            background: #1a1610;
+            padding: 5px 20px;
+            border-radius: 40px;
+            letter-spacing: 3px;
         }
 
         .role-manager-item {
@@ -221,7 +253,6 @@
             gap: 12px;
         }
 
-        /* Modal cho thiết lập lại */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -246,20 +277,6 @@
             text-align: center;
         }
 
-        .modal-box h3 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        /* Fullscreen Notepad Modal */
         .fullscreen-notepad {
             display: none;
             position: fixed;
@@ -283,11 +300,6 @@
             gap: 12px;
         }
 
-        .fullscreen-notepad h2 {
-            border-left-color: #ffc857;
-            margin: 0;
-        }
-
         .fullscreen-notepad textarea {
             flex: 1;
             width: 100%;
@@ -300,13 +312,6 @@
             line-height: 1.6;
         }
 
-        .close-notepad-btn {
-            background: #7a2e2e;
-            padding: 10px 24px;
-            font-size: 1.1rem;
-        }
-
-        /* Custom confirm dialog style */
         .custom-confirm {
             display: none;
             position: fixed;
@@ -331,18 +336,6 @@
             text-align: center;
         }
 
-        .confirm-box p {
-            font-size: 1.2rem;
-            margin-bottom: 24px;
-        }
-
-        .confirm-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
-
-        /* Layout bàn chơi */
         .game-layout {
             display: flex;
             flex-direction: column;
@@ -357,107 +350,201 @@
             margin-bottom: 16px;
         }
 
-        .game-players-area {
-            flex: 1;
-            min-height: 0;
-        }
-
         .game-players-area .player-list {
             max-height: 55vh;
             min-height: 300px;
             overflow-y: auto;
         }
+
+        .timer-alert {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px);
+            z-index: 1300;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .alert-box {
+            background: #2a241ee6;
+            border-radius: 40px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            border: 3px solid #ffaa44;
+            text-align: center;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .alert-box h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffaa44;
+            border-left: none;
+        }
+
+        .alert-box p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .alert-box button {
+            background: #a3522c;
+            padding: 12px 32px;
+            font-size: 1.2rem;
+        }
+
+        .select-player-modal {
+            background: #2a241ee6;
+            border-radius: 32px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #ffcd94;
+            text-align: center;
+        }
+
+        .select-player-modal h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .player-list-modal {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .player-option {
+            background: #1f1914;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .player-option:hover {
+            background: #3b2b1f;
+            transform: scale(1.02);
+        }
+
+        .player-option.dead {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- MÀN HÌNH 1: THIẾT LẬP DANH SÁCH NGƯỜI CHƠI -->
     <div id="screenSetup" class="screen">
         <div class="header-stats">
             <h1>🐺 THIẾT LẬP THÀNH VIÊN</h1>
             <div class="counter-badge" id="playerCounter">👥 Số lượng: 0</div>
         </div>
-        
         <div class="input-group">
             <input type="text" id="newPlayerName" placeholder="Nhập tên người chơi" maxlength="25">
             <button id="addPlayerToListBtn" class="primary">➕ Thêm thành viên</button>
         </div>
-        
         <h2>📋 Danh sách thành viên</h2>
-        <div id="tempPlayerNames" class="player-list">
-            <div style="text-align:center; padding:20px;">Chưa có thành viên, hãy thêm người chơi</div>
-        </div>
-        
+        <div id="tempPlayerNames" class="player-list"><div style="text-align:center; padding:20px;">Chưa có thành viên</div></div>
         <div class="flex-btns">
             <button id="clearAllPlayersBtn" class="danger">🗑️ Xóa tất cả</button>
-            <button id="confirmPlayersBtn" class="primary" style="margin-left:auto;">✅ TIẾP THEO: THIẾT LẬP VAI TRÒ</button>
+            <button id="confirmPlayersBtn" class="primary">✅ TIẾP THEO: THIẾT LẬP VAI TRÒ</button>
         </div>
     </div>
 
-    <!-- MÀN HÌNH 2: THIẾT LẬP VAI TRÒ -->
     <div id="screenRoles" class="screen hidden">
         <h1>🎭 THIẾT LẬP VAI TRÒ</h1>
-        <p>✅ Chọn những vai trò sẽ xuất hiện trong game (bật/tắt tùy ý). Có thể thêm/xóa vai trò.</p>
+        <p>✅ Chọn vai trò sẽ xuất hiện. Vai "🛡️ Bảo Vệ" có chức năng bảo vệ đặc biệt.</p>
         <div id="rolesManagerList" class="player-list" style="max-height: 350px;"></div>
         <div class="add-role-modal">
-            <input type="text" id="addRoleInput" placeholder="Nhập vai trò mới, VD: Già làng">
+            <input type="text" id="addRoleInput" placeholder="Nhập vai trò mới">
             <button id="addRoleInSetupBtn" class="primary">➕ Thêm</button>
         </div>
         <div class="flex-btns">
-            <button id="backToSetupBtn" class="warning">◀ Quay lại sửa tên</button>
-            <button id="finishRolesBtn" class="primary">🎮 VÀO BÀN CHƠI 🎮</button>
+            <button id="backToSetupBtn" class="warning">◀ Quay lại</button>
+            <button id="finishRolesBtn" class="primary">🎮 VÀO BÀN CHƠI</button>
         </div>
     </div>
 
-    <!-- MÀN HÌNH 3: BÀN CHƠI CHÍNH -->
     <div id="screenGame" class="screen hidden">
         <h1>🐺 BÀN CHƠI MA SÓI</h1>
-        
         <div class="game-layout">
-            <!-- Toolbar -->
             <div class="game-toolbar">
                 <div class="flex-btns" style="justify-content: space-between; margin: 0;">
                     <div style="display: flex; gap: 12px;">
-                        <button id="settingsResetBtn" class="warning" style="background:#4a382a;">⚙️ THIẾT LẬP LẠI</button>
-                        <button id="openNotepadBtn" class="warning" style="background:#4a382a;">📝 GHI CHÚ</button>
+                        <button id="settingsResetBtn" style="background:#4a382a;">⚙️ THIẾT LẬP LẠI</button>
+                        <button id="openNotepadBtn" style="background:#4a382a;">📝 GHI CHÚ</button>
                     </div>
                     <div>
                         <button id="gameResetRolesBtn" class="warning">🔄 Reset gán vai</button>
                         <button id="newGameRoundBtn" class="primary">✨ VÁN MỚI</button>
                     </div>
                 </div>
-                <div class="info-bar" style="margin-top: 12px; margin-bottom: 0;">
+                <div class="info-bar" style="margin-top: 12px;">
                     <span>🌙 <strong id="gameNightDisplay">Đêm 0</strong></span>
                     <span>💀 Số người chết: <strong id="gameDeadCount">0</strong></span>
                     <span>👥 Tổng số: <strong id="gameTotalCount">0</strong></span>
-                    <button id="nextNightGameBtn">🌙 QUA ĐÊM TIẾP THEO</button>
+                    <span>🛡️ Số BV còn: <strong id="protectCount">0</strong></span>
+                    <button id="nextNightGameBtn">🌙 QUA ĐÊM</button>
+                </div>
+                <div class="timer-bar">
+                    <span>⏱️ HẸN GIỜ THẢO LUẬN:</span>
+                    <input type="number" id="timerMinutes" value="1" min="0" max="10" step="1" style="width:70px;"> phút
+                    <input type="number" id="timerSeconds" value="30" min="0" max="59" step="10" style="width:70px;"> giây
+                    <button id="startTimerBtn" class="primary">▶ BẮT ĐẦU</button>
+                    <button id="pauseTimerBtn" class="warning">⏸ DỪNG</button>
+                    <span class="timer-display" id="timerDisplay">00:00</span>
                 </div>
             </div>
-            
-            <!-- Khu vực danh sách người chơi -->
             <div class="game-players-area">
-                <div id="gamePlayerList" class="player-list" style="max-height: 100vh; min-height: 300px;">
-                    <!-- dynamic content -->
-                </div>
+                <div id="gamePlayerList" class="player-list" style="max-height: 60vh;"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Fullscreen Notepad Modal -->
-<div id="fullscreenNotepad" class="fullscreen-notepad">
-    <div class="notepad-header">
-        <h2>📝 GHI CHÚ SỰ KIỆN</h2>
-        <button id="closeNotepadBtn" class="close-notepad-btn">❌ ĐÓNG</button>
+<div id="timerAlertModal" class="timer-alert">
+    <div class="alert-box">
+        <h2>⏰ HẾT GIỜ!</h2>
+        <p>Thời gian thảo luận đã kết thúc.</p>
+        <button id="closeTimerAlertBtn" class="primary">ĐÓNG</button>
     </div>
-    <textarea id="fullscreenNotePad" rows="20" placeholder="Ghi chú sự kiện..."></textarea>
 </div>
 
-<!-- Modal thiết lập lại -->
+<div id="protectSelectModal" class="modal-overlay">
+    <div class="select-player-modal">
+        <h3>🛡️ CHỌN NGƯỜI ĐƯỢC BẢO VỆ</h3>
+        <div id="protectPlayerList" class="player-list-modal"></div>
+        <div class="modal-buttons" style="margin-top: 20px;">
+            <button id="cancelProtectBtn" class="warning">❌ HỦY</button>
+        </div>
+    </div>
+</div>
+
+<div id="fullscreenNotepad" class="fullscreen-notepad">
+    <div class="notepad-header">
+        <h2>📝 GHI CHÚ</h2>
+        <button id="closeNotepadBtn" class="close-notepad-btn">❌ ĐÓNG</button>
+    </div>
+    <textarea id="fullscreenNotePad" rows="20"></textarea>
+</div>
+
 <div id="resetModal" class="modal-overlay">
     <div class="modal-box">
         <h3>⚠️ CẢNH BÁO</h3>
-        <p>Việc thay đổi thành viên hoặc vai trò sẽ <strong style="color:#ffaa66;">làm mới toàn bộ ván chơi hiện tại</strong> (mất dữ liệu gán vai, sinh tử, đêm).<br>Bạn có chắc chắn muốn tiếp tục?</p>
+        <p>Thay đổi thành viên/vai trò sẽ làm mới toàn bộ ván chơi!</p>
         <div class="modal-buttons">
             <button id="modalEditPlayersBtn" class="primary">✏️ Sửa thành viên</button>
             <button id="modalEditRolesBtn" class="primary">🎭 Sửa vai trò</button>
@@ -466,7 +553,6 @@
     </div>
 </div>
 
-<!-- Custom Confirm cho các hành động -->
 <div id="customConfirm" class="custom-confirm">
     <div class="confirm-box">
         <p id="confirmMessage">⚠️ Bạn có chắc chắn?</p>
@@ -478,491 +564,299 @@
 </div>
 
 <script>
-    // ---------- DỮ LIỆU TOÀN CỤC ----------
-    let players = [];            // { id, name, role, isAlive }
-    let allRoles = [];           // { id, name, enabled }
-    let nightCounter = 0;
-    let noteContent = "";
-    
-    // Custom confirm handler
+    let players = [], allRoles = [], nightCounter = 0, noteContent = "", timerInterval = null;
     let pendingAction = null;
-    const customConfirm = document.getElementById('customConfirm');
-    const confirmMessage = document.getElementById('confirmMessage');
-    const confirmYesBtn = document.getElementById('confirmYesBtn');
-    const confirmNoBtn = document.getElementById('confirmNoBtn');
+    let currentProtectorId = null;
     
-    function showConfirm(message, onConfirm) {
-        confirmMessage.innerText = message;
-        customConfirm.style.display = 'flex';
-        pendingAction = onConfirm;
-    }
+    const customConfirm = document.getElementById('customConfirm'), confirmMessage = document.getElementById('confirmMessage');
+    const confirmYesBtn = document.getElementById('confirmYesBtn'), confirmNoBtn = document.getElementById('confirmNoBtn');
+    function showConfirm(msg, onConfirm) { confirmMessage.innerText = msg; customConfirm.style.display = 'flex'; pendingAction = onConfirm; }
+    function hideConfirm() { customConfirm.style.display = 'none'; pendingAction = null; }
+    confirmYesBtn.onclick = () => { if(pendingAction) pendingAction(); hideConfirm(); };
+    confirmNoBtn.onclick = hideConfirm;
+
+    const timerAlertModal = document.getElementById('timerAlertModal');
+    const closeTimerAlertBtn = document.getElementById('closeTimerAlertBtn');
+    function showTimerAlert() { timerAlertModal.style.display = 'flex'; }
+    function hideTimerAlert() { timerAlertModal.style.display = 'none'; }
+    closeTimerAlertBtn.onclick = hideTimerAlert;
+    timerAlertModal.onclick = (e) => { if(e.target === timerAlertModal) hideTimerAlert(); };
+
+    const protectSelectModal = document.getElementById('protectSelectModal');
+    const protectPlayerList = document.getElementById('protectPlayerList');
+    const cancelProtectBtn = document.getElementById('cancelProtectBtn');
     
-    function hideConfirm() {
-        customConfirm.style.display = 'none';
-        pendingAction = null;
-    }
-    
-    confirmYesBtn.addEventListener('click', () => {
-        if (pendingAction) {
-            pendingAction();
-        }
-        hideConfirm();
-    });
-    
-    confirmNoBtn.addEventListener('click', hideConfirm);
-    
-    // DOM elements
-    const screenSetup = document.getElementById('screenSetup');
-    const screenRoles = document.getElementById('screenRoles');
-    const screenGame = document.getElementById('screenGame');
-    
-    // Setup màn 1
-    const newPlayerName = document.getElementById('newPlayerName');
-    const addPlayerToListBtn = document.getElementById('addPlayerToListBtn');
-    const clearAllPlayersBtn = document.getElementById('clearAllPlayersBtn');
-    const tempPlayerNamesDiv = document.getElementById('tempPlayerNames');
-    const confirmPlayersBtn = document.getElementById('confirmPlayersBtn');
-    const playerCounterSpan = document.getElementById('playerCounter');
-    
-    // Màn 2
-    const rolesManagerList = document.getElementById('rolesManagerList');
-    const addRoleInput = document.getElementById('addRoleInput');
-    const addRoleInSetupBtn = document.getElementById('addRoleInSetupBtn');
-    const backToSetupBtn = document.getElementById('backToSetupBtn');
-    const finishRolesBtn = document.getElementById('finishRolesBtn');
-    
-    // Màn 3
-    const gamePlayerList = document.getElementById('gamePlayerList');
-    const gameNightDisplay = document.getElementById('gameNightDisplay');
-    const gameDeadCount = document.getElementById('gameDeadCount');
-    const gameTotalCount = document.getElementById('gameTotalCount');
-    const nextNightGameBtn = document.getElementById('nextNightGameBtn');
-    const settingsResetBtn = document.getElementById('settingsResetBtn');
-    const gameResetRolesBtn = document.getElementById('gameResetRolesBtn');
-    const newGameRoundBtn = document.getElementById('newGameRoundBtn');
-    
-    // Notepad fullscreen
-    const fullscreenNotepad = document.getElementById('fullscreenNotepad');
-    const openNotepadBtn = document.getElementById('openNotepadBtn');
-    const closeNotepadBtn = document.getElementById('closeNotepadBtn');
-    const fullscreenNotePad = document.getElementById('fullscreenNotePad');
-    
-    // Modal
-    const resetModal = document.getElementById('resetModal');
-    const modalEditPlayersBtn = document.getElementById('modalEditPlayersBtn');
-    const modalEditRolesBtn = document.getElementById('modalEditRolesBtn');
-    const modalCancelBtn = document.getElementById('modalCancelBtn');
-    
-    // ========== NOTEPAD FULLSCREEN ==========
-    function syncNoteToFullscreen() {
-        fullscreenNotePad.value = noteContent;
-    }
-    
-    function syncNoteFromFullscreen() {
-        noteContent = fullscreenNotePad.value;
-    }
-    
-    function openFullscreenNotepad() {
-        syncNoteToFullscreen();
-        fullscreenNotepad.style.display = 'flex';
-    }
-    
-    function closeFullscreenNotepad() {
-        syncNoteFromFullscreen();
-        fullscreenNotepad.style.display = 'none';
-    }
-    
-    openNotepadBtn.addEventListener('click', openFullscreenNotepad);
-    closeNotepadBtn.addEventListener('click', closeFullscreenNotepad);
-    
-    // ========== HÀM GHI CHÚ TỰ ĐỘNG ==========
-    function addNoteSeparator(title) {
-        const timestamp = new Date().toLocaleTimeString('vi-VN');
-        const separator = `\n[${timestamp}] ═══════ ${title} ═══════\n`;
-        noteContent = noteContent + separator;
-        fullscreenNotePad.value = noteContent;
-    }
-    
-    function addNoteEvent(eventText) {
-        const timestamp = new Date().toLocaleTimeString('vi-VN');
-        noteContent = noteContent + `[${timestamp}] ${eventText}\n`;
-        fullscreenNotePad.value = noteContent;
-    }
-    
-    // ========== DANH SÁCH TẠM (MÀN 1) ==========
-    let tempPlayerList = [];
-    
-    function updatePlayerCounter() {
-        playerCounterSpan.innerHTML = `👥 Số lượng: ${tempPlayerList.length}`;
-    }
-    
-    function renderTempPlayerList() {
-        if (!tempPlayerNamesDiv) return;
-        if (tempPlayerList.length === 0) {
-            tempPlayerNamesDiv.innerHTML = '<div style="text-align:center; padding:20px;">✨ Chưa có thành viên, hãy thêm người chơi</div>';
-            updatePlayerCounter();
-            return;
-        }
-        const fragment = document.createDocumentFragment();
-        tempPlayerList.forEach((playerName, idx) => {
-            const div = document.createElement('div');
-            div.className = 'player-card-item';
-            
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'player-info';
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'player-name';
-            nameSpan.innerText = playerName;
-            
-            const editInput = document.createElement('input');
-            editInput.type = 'text';
-            editInput.value = playerName;
-            editInput.style.flex = '1';
-            editInput.style.minWidth = '120px';
-            editInput.addEventListener('change', (e) => {
-                let newVal = e.target.value.trim();
-                if (newVal === "") newVal = "???";
-                tempPlayerList[idx] = newVal;
-                renderTempPlayerList();
-            });
-            
-            infoDiv.appendChild(nameSpan);
-            infoDiv.appendChild(editInput);
-            
-            const delBtn = document.createElement('button');
-            delBtn.innerText = '❌ Xóa';
-            delBtn.style.background = '#7a2e2e';
-            delBtn.onclick = () => {
-                tempPlayerList.splice(idx, 1);
-                renderTempPlayerList();
-            };
-            
-            div.appendChild(infoDiv);
-            div.appendChild(delBtn);
-            fragment.appendChild(div);
-        });
-        tempPlayerNamesDiv.innerHTML = '';
-        tempPlayerNamesDiv.appendChild(fragment);
-        updatePlayerCounter();
-    }
-    
-    function addNewPlayer() {
-        let name = newPlayerName.value.trim();
-        if (name === "") {
-            alert("Vui lòng nhập tên người chơi");
-            return;
-        }
-        if (tempPlayerList.some(p => p.toLowerCase() === name.toLowerCase())) {
-            alert("Tên này đã có trong danh sách!");
-            return;
-        }
-        tempPlayerList.push(name);
-        newPlayerName.value = "";
-        renderTempPlayerList();
-    }
-    
-    function clearAllTempPlayers() {
-        if (tempPlayerList.length === 0) return;
-        if (confirm("Xóa tất cả thành viên?")) {
-            tempPlayerList = [];
-            renderTempPlayerList();
-        }
-    }
-    
-    addPlayerToListBtn.addEventListener('click', addNewPlayer);
-    clearAllPlayersBtn.addEventListener('click', clearAllTempPlayers);
-    newPlayerName.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewPlayer(); });
-    
-    function confirmPlayersAndContinue() {
-        if (tempPlayerList.length === 0) {
-            alert("Chưa có thành viên nào! Hãy thêm người chơi.");
-            return;
-        }
-        players = tempPlayerList.map(name => ({
-            id: Date.now() + Math.random() * 10000,
-            name: name,
-            role: null,
-            isAlive: true
-        }));
-        if (allRoles.length === 0) initDefaultRolesForSetup();
-        renderRolesSetup();
-        showScreen('roles');
-        addNoteSeparator("CHUYỂN SANG THIẾT LẬP VAI TRÒ");
-    }
-    confirmPlayersBtn.addEventListener('click', confirmPlayersAndContinue);
-    
-    // ========== KHỞI TẠO VAI TRÒ MẶC ĐỊNH ==========
-    function initDefaultRolesForSetup() {
-        if (allRoles.length === 0) {
-            const defaults = ["🐺 Ma Sói", "👨‍🌾 Dân Làng", "🔮 Tiên Tri", "🧪 Phù Thủy", "🛡️ Bảo Vệ", "🏹 Thợ Săn", "❤️ Thần Tình Yêu"];
-            defaults.forEach((name, idx) => {
-                allRoles.push({ id: Date.now() + idx + Math.random(), name: name, enabled: true });
-            });
-        }
-    }
-    
-    function renderRolesSetup() {
-        if (!rolesManagerList) return;
-        if (allRoles.length === 0) {
-            rolesManagerList.innerHTML = '<div style="padding:20px; text-align:center;">Chưa có vai trò, hãy thêm mới</div>';
-            return;
-        }
-        rolesManagerList.innerHTML = '';
-        allRoles.forEach(role => {
-            const div = document.createElement('div');
-            div.className = 'role-manager-item';
-            const label = document.createElement('label');
-            label.className = 'role-checkbox-label';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.checked = role.enabled;
-            cb.addEventListener('change', (e) => { role.enabled = e.target.checked; });
-            const span = document.createElement('span');
-            span.innerText = role.name;
-            label.appendChild(cb);
-            label.appendChild(span);
-            const delBtn = document.createElement('button');
-            delBtn.innerText = '❌ Xóa';
-            delBtn.className = 'delete-role-btn';
-            delBtn.onclick = () => {
-                if (confirm(`Xóa "${role.name}"?`)) {
-                    allRoles = allRoles.filter(r => r.id !== role.id);
-                    renderRolesSetup();
-                }
-            };
-            div.appendChild(label);
-            div.appendChild(delBtn);
-            rolesManagerList.appendChild(div);
-        });
-    }
-    
-    function addRoleInSetup() {
-        let newName = addRoleInput.value.trim();
-        if (!newName) { alert("Nhập tên vai trò"); return; }
-        if (allRoles.some(r => r.name === newName)) { alert("Đã tồn tại"); return; }
-        allRoles.push({ id: Date.now() + Math.random(), name: newName, enabled: true });
-        addRoleInput.value = '';
-        renderRolesSetup();
-    }
-    
-    addRoleInSetupBtn.addEventListener('click', addRoleInSetup);
-    addRoleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRoleInSetup(); });
-    
-    function getEnabledRoles() {
-        return allRoles.filter(r => r.enabled === true);
-    }
-    
-    backToSetupBtn.addEventListener('click', () => {
-        if (players.length > 0) {
-            tempPlayerList = players.map(p => p.name);
-        }
-        renderTempPlayerList();
-        showScreen('setup');
-        addNoteSeparator("QUAY LẠI CHỈNH SỬA THÀNH VIÊN");
-    });
-    
-    function finishAndGoToGame() {
-        const enabledNames = getEnabledRoles().map(r => r.name);
+    function showProtectModal(protectorId) {
+        currentProtectorId = protectorId;
+        protectPlayerList.innerHTML = '';
         players.forEach(p => {
-            if (p.role && !enabledNames.includes(p.role)) p.role = null;
-        });
-        nightCounter = 0;
-        renderGameScreen();
-        showScreen('game');
-        addNoteSeparator("VÀO BÀN CHƠI - BẮT ĐẦU GAME");
-        addNoteEvent("🌑 Đêm 0 (khởi đầu)");
-    }
-    finishRolesBtn.addEventListener('click', finishAndGoToGame);
-    
-    // ========== MÀN HÌNH GAME ==========
-    function renderGameScreen() {
-        if (!gamePlayerList) return;
-        const enabledRoles = getEnabledRoles();
-        if (players.length === 0) {
-            gamePlayerList.innerHTML = '<div style="text-align:center;padding:20px;">Chưa có người chơi, quay lại chỉnh sửa thành viên</div>';
-            gameTotalCount.innerText = '0';
-            return;
-        }
-        gameTotalCount.innerText = players.length;
-        const fragment = document.createDocumentFragment();
-        players.forEach(player => {
-            const div = document.createElement('div');
-            div.className = 'player-card-item';
-            if (!player.isAlive) div.style.opacity = '0.65';
-            
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'player-info';
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'player-name';
-            nameSpan.innerText = player.name;
-            const statusSpan = document.createElement('span');
-            statusSpan.className = `player-status ${player.isAlive ? 'status-alive' : 'status-dead'}`;
-            statusSpan.innerText = player.isAlive ? '❤️ Sống' : '💀 Chết';
-            
-            const roleSelect = document.createElement('select');
-            roleSelect.className = 'role-select';
-            const optNone = document.createElement('option');
-            optNone.value = '';
-            optNone.innerText = '❌ Chưa gán';
-            roleSelect.appendChild(optNone);
-            enabledRoles.forEach(role => {
-                const opt = document.createElement('option');
-                opt.value = role.name;
-                opt.innerText = role.name;
-                if (player.role === role.name) opt.selected = true;
-                roleSelect.appendChild(opt);
-            });
-            roleSelect.addEventListener('change', (e) => {
-                const oldRole = player.role || "Chưa gán";
-                player.role = e.target.value || null;
-                const newRole = player.role || "Chưa gán";
-                addNoteEvent(`🎭 Gán vai cho ${player.name}: ${oldRole} → ${newRole}`);
-                renderGameScreen();
-            });
-            
-            infoDiv.appendChild(nameSpan);
-            infoDiv.appendChild(statusSpan);
-            infoDiv.appendChild(roleSelect);
-            
-            const actionDiv = document.createElement('div');
-            actionDiv.className = 'action-buttons';
-            if (player.isAlive) {
-                const killBtn = document.createElement('button');
-                killBtn.innerText = '💀 GIẾT';
-                killBtn.className = 'kill-btn';
-                killBtn.onclick = () => { 
-                    player.isAlive = false; 
-                    addNoteEvent(`💀 ${player.name} ĐÃ CHẾT`);
-                    renderGameScreen(); 
-                    updateGameStats(); 
-                };
-                actionDiv.appendChild(killBtn);
-            } else {
-                const reviveBtn = document.createElement('button');
-                reviveBtn.innerText = '❤️ HỒI SINH';
-                reviveBtn.className = 'revive-btn';
-                reviveBtn.onclick = () => { 
-                    player.isAlive = true; 
-                    addNoteEvent(`❤️ ${player.name} ĐƯỢC HỒI SINH`);
-                    renderGameScreen(); 
-                    updateGameStats(); 
-                };
-                actionDiv.appendChild(reviveBtn);
-            }
-            const delBtn = document.createElement('button');
-            delBtn.innerText = '🗑️';
-            delBtn.style.background = '#5e2a2a';
-            delBtn.onclick = () => {
-                if (confirm(`Xóa ${player.name}?`)) {
-                    addNoteEvent(`🗑️ Đã xóa ${player.name} khỏi danh sách`);
-                    players = players.filter(p => p.id !== player.id);
+            let option = document.createElement('div');
+            option.className = 'player-option';
+            if(!p.isAlive) option.classList.add('dead');
+            option.innerHTML = `${p.name} ${!p.isAlive ? '(ĐÃ CHẾT)' : ''}`;
+            if(p.isAlive) {
+                option.onclick = () => {
+                    // Xóa bảo vệ cũ của người bảo vệ này (nếu có)
+                    const protector = players.find(pl => pl.id === protectorId);
+                    if (protector && protector.protectedTargetId) {
+                        const oldTarget = players.find(pl => pl.id === protector.protectedTargetId);
+                        if (oldTarget) {
+                            oldTarget.protected = false;
+                            addNoteEvent(`🛡️ ${protector.name} (Bảo vệ) đã hủy bảo vệ ${oldTarget.name}`);
+                        }
+                    }
+                    // Bảo vệ người mới
+                    p.protected = true;
+                    if (protector) {
+                        protector.protectedTargetId = p.id;
+                    }
+                    addNoteEvent(`🛡️ ${players.find(pl=>pl.id===protectorId)?.name} (Bảo vệ) đã bảo vệ ${p.name}`);
+                    protectSelectModal.style.display = 'none';
                     renderGameScreen();
-                    updateGameStats();
-                }
-            };
-            actionDiv.appendChild(delBtn);
-            
-            div.appendChild(infoDiv);
-            div.appendChild(actionDiv);
-            fragment.appendChild(div);
+                };
+            }
+            protectPlayerList.appendChild(option);
         });
-        gamePlayerList.innerHTML = '';
-        gamePlayerList.appendChild(fragment);
-        updateGameStats();
+        protectSelectModal.style.display = 'flex';
     }
     
-    function updateGameStats() {
-        const dead = players.filter(p => !p.isAlive).length;
-        gameDeadCount.innerText = dead;
-        gameTotalCount.innerText = players.length;
-        if (nightCounter === 0) gameNightDisplay.innerText = "🌑 Đêm 0 (khởi đầu)";
-        else gameNightDisplay.innerText = `🌙 Đêm thứ ${nightCounter}`;
+    function hideProtectModal() {
+        protectSelectModal.style.display = 'none';
+        currentProtectorId = null;
     }
     
-    function nextNightGame() {
-        if (players.length === 0) { alert("Chưa có người chơi"); return; }
-        nightCounter++;
-        updateGameStats();
-        addNoteSeparator(`ĐÊM ${nightCounter}`);
-        addNoteEvent(`🌙 Chuyển sang đêm ${nightCounter}`);
+    cancelProtectBtn.onclick = hideProtectModal;
+    protectSelectModal.onclick = (e) => { if(e.target === protectSelectModal) hideProtectModal(); };
+
+    const screenSetup = document.getElementById('screenSetup'), screenRoles = document.getElementById('screenRoles'), screenGame = document.getElementById('screenGame');
+    const newPlayerName = document.getElementById('newPlayerName'), addPlayerToListBtn = document.getElementById('addPlayerToListBtn');
+    const clearAllPlayersBtn = document.getElementById('clearAllPlayersBtn'), tempPlayerNamesDiv = document.getElementById('tempPlayerNames');
+    const confirmPlayersBtn = document.getElementById('confirmPlayersBtn'), playerCounterSpan = document.getElementById('playerCounter');
+    const rolesManagerList = document.getElementById('rolesManagerList'), addRoleInput = document.getElementById('addRoleInput');
+    const addRoleInSetupBtn = document.getElementById('addRoleInSetupBtn'), backToSetupBtn = document.getElementById('backToSetupBtn');
+    const finishRolesBtn = document.getElementById('finishRolesBtn');
+    const gamePlayerList = document.getElementById('gamePlayerList'), gameNightDisplay = document.getElementById('gameNightDisplay');
+    const gameDeadCount = document.getElementById('gameDeadCount'), gameTotalCount = document.getElementById('gameTotalCount');
+    const protectCountSpan = document.getElementById('protectCount');
+    const nextNightGameBtn = document.getElementById('nextNightGameBtn'), settingsResetBtn = document.getElementById('settingsResetBtn');
+    const gameResetRolesBtn = document.getElementById('gameResetRolesBtn'), newGameRoundBtn = document.getElementById('newGameRoundBtn');
+    const fullscreenNotepad = document.getElementById('fullscreenNotepad'), openNotepadBtn = document.getElementById('openNotepadBtn');
+    const closeNotepadBtn = document.getElementById('closeNotepadBtn'), fullscreenNotePad = document.getElementById('fullscreenNotePad');
+    const resetModal = document.getElementById('resetModal'), modalEditPlayersBtn = document.getElementById('modalEditPlayersBtn');
+    const modalEditRolesBtn = document.getElementById('modalEditRolesBtn'), modalCancelBtn = document.getElementById('modalCancelBtn');
+    const timerMinutes = document.getElementById('timerMinutes'), timerSeconds = document.getElementById('timerSeconds');
+    const startTimerBtn = document.getElementById('startTimerBtn'), pauseTimerBtn = document.getElementById('pauseTimerBtn'), timerDisplay = document.getElementById('timerDisplay');
+    
+    let currentTimerSeconds = 0;
+    let isPaused = false;
+    
+    function updateTimerDisplay() { let m = Math.floor(currentTimerSeconds/60), s = currentTimerSeconds%60; timerDisplay.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; }
+    
+    function startTimer() { 
+        if(timerInterval) clearInterval(timerInterval); 
+        let mins = parseInt(timerMinutes.value)||0, secs = parseInt(timerSeconds.value)||0; 
+        currentTimerSeconds = mins*60 + secs; 
+        if(currentTimerSeconds<=0) return; 
+        updateTimerDisplay(); 
+        isPaused = false;
+        pauseTimerBtn.textContent = '⏸ DỪNG';
+        pauseTimerBtn.className = 'warning';
+        timerInterval = setInterval(()=>{ 
+            if(isPaused) return;
+            if(currentTimerSeconds<=0){ 
+                clearInterval(timerInterval); 
+                timerInterval=null; 
+                addNoteEvent("⏰ Hết giờ thảo luận!");
+                showTimerAlert();
+                pauseTimerBtn.textContent = '⏸ DỪNG';
+                pauseTimerBtn.className = 'warning';
+            } else { 
+                currentTimerSeconds--; 
+                updateTimerDisplay(); 
+            } 
+        },1000); 
     }
     
-    function resetRolesInGameWithConfirm() {
-        showConfirm("⚠️ Reset gán vai sẽ xóa tất cả vai trò đã gán cho người chơi. Bạn có chắc chắn?", () => {
-            players.forEach(p => { p.role = null; });
-            renderGameScreen();
-            addNoteEvent(`🔄 Reset toàn bộ vai trò đã gán`);
-        });
-    }
-    
-    function newGameRoundWithConfirm() {
-    showConfirm("✨ Bắt đầu ván mới sẽ hồi sinh toàn bộ người chơi, xóa gán vai, reset ghi chú và đưa về đêm 0. Bạn có chắc chắn?", () => {
-        players.forEach(p => {
-            p.role = null;
-            p.isAlive = true;
-        });
-        nightCounter = 0;
-        // Reset ghi chú
-        noteContent = "";
-        fullscreenNotePad.value = "";
-        renderGameScreen();
-        addNoteSeparator("VÁN MỚI");
-        addNoteEvent(`✨ Bắt đầu ván mới - giữ nguyên thành viên và danh sách vai trò`);
-    });
-}
-    
-    // Modal handlers
-    function openResetModal() {
-        resetModal.style.display = 'flex';
-    }
-    
-    function closeResetModal() {
-        resetModal.style.display = 'none';
-    }
-    
-    function editPlayersFromModal() {
-        closeResetModal();
-        if (players.length > 0) {
-            tempPlayerList = players.map(p => p.name);
+    function pauseTimer() { 
+        if(timerInterval){
+            if(isPaused){
+                isPaused = false;
+                pauseTimerBtn.textContent = '⏸ DỪNG';
+                pauseTimerBtn.className = 'warning';
+                addNoteEvent("▶ Tiếp tục hẹn giờ");
+            } else {
+                isPaused = true;
+                pauseTimerBtn.textContent = '▶ TIẾP TỤC';
+                pauseTimerBtn.className = 'primary';
+                addNoteEvent("⏸ Tạm dừng hẹn giờ");
+            }
+        } else {
+            startTimer();
         }
-        renderTempPlayerList();
-        showScreen('setup');
-        addNoteSeparator("CHỈNH SỬA THÀNH VIÊN (từ bàn chơi)");
     }
     
-    function editRolesFromModal() {
-        closeResetModal();
-        renderRolesSetup();
-        showScreen('roles');
-        addNoteSeparator("CHỈNH SỬA VAI TRÒ (từ bàn chơi)");
+    startTimerBtn.onclick = startTimer;
+    pauseTimerBtn.onclick = pauseTimer;
+
+    function addNoteSeparator(title) { let ts = new Date().toLocaleTimeString('vi-VN'); noteContent += `\n[${ts}] ═══════ ${title} ═══════\n`; fullscreenNotePad.value = noteContent; }
+    function addNoteEvent(text) { let ts = new Date().toLocaleTimeString('vi-VN'); noteContent += `[${ts}] ${text}\n`; fullscreenNotePad.value = noteContent; }
+    function syncNoteToFullscreen() { fullscreenNotePad.value = noteContent; }
+    function syncNoteFromFullscreen() { noteContent = fullscreenNotePad.value; }
+    openNotepadBtn.onclick = () => { syncNoteToFullscreen(); fullscreenNotepad.style.display = 'flex'; };
+    closeNotepadBtn.onclick = () => { syncNoteFromFullscreen(); fullscreenNotepad.style.display = 'none'; };
+
+    let tempPlayerList = [];
+    function updatePlayerCounter() { playerCounterSpan.innerHTML = `👥 Số lượng: ${tempPlayerList.length}`; }
+    function renderTempPlayerList() {
+        if(tempPlayerList.length===0){ tempPlayerNamesDiv.innerHTML = '<div style="text-align:center;padding:20px;">✨ Chưa có thành viên</div>'; updatePlayerCounter(); return; }
+        tempPlayerNamesDiv.innerHTML = '';
+        tempPlayerList.forEach((name, idx)=>{
+            let div = document.createElement('div'); div.className = 'player-card-item';
+            let info = document.createElement('div'); info.className = 'player-info';
+            let span = document.createElement('span'); span.className = 'player-name'; span.innerText = name;
+            let input = document.createElement('input'); input.value = name; input.addEventListener('change',(e)=>{ let v=e.target.value.trim(); if(v) tempPlayerList[idx]=v; renderTempPlayerList(); });
+            info.appendChild(span); info.appendChild(input);
+            let del = document.createElement('button'); del.innerText = '❌ Xóa'; del.onclick = ()=>{ tempPlayerList.splice(idx,1); renderTempPlayerList(); };
+            div.appendChild(info); div.appendChild(del); tempPlayerNamesDiv.appendChild(div);
+        }); updatePlayerCounter();
+    }
+    function addNewPlayer() { let name = newPlayerName.value.trim(); if(!name) return alert("Nhập tên"); if(tempPlayerList.includes(name)) return alert("Trùng tên"); tempPlayerList.push(name); newPlayerName.value=""; renderTempPlayerList(); }
+    addPlayerToListBtn.onclick = addNewPlayer;
+    clearAllPlayersBtn.onclick = ()=>{ if(confirm("Xóa tất cả?")){ tempPlayerList=[]; renderTempPlayerList(); } };
+    newPlayerName.addEventListener('keypress',(e)=>{ if(e.key==='Enter') addNewPlayer(); });
+
+    function hasProtectorRole() { return allRoles.some(r=>r.enabled && r.name.toLowerCase().includes("bảo vệ")); }
+    function getEnabledRoles() { return allRoles.filter(r=>r.enabled); }
+    function getProtectCount() { return players.filter(p=>p.isAlive && p.role && p.role.toLowerCase().includes("bảo vệ")).length; }
+    function updateProtectDisplay() { protectCountSpan.innerText = getProtectCount(); }
+
+    function renderGameScreen() {
+        let enabled = getEnabledRoles();
+        let showProtectBtn = hasProtectorRole();
+        if(players.length===0){ gamePlayerList.innerHTML = '<div style="text-align:center;padding:20px;">Chưa có người chơi</div>'; gameTotalCount.innerText='0'; return; }
+        gameTotalCount.innerText = players.length;
+        gamePlayerList.innerHTML = '';
+        
+        players.forEach(p=>{
+            let div = document.createElement('div'); div.className = 'player-card-item'; if(!p.isAlive) div.style.opacity='0.65';
+            let info = document.createElement('div'); info.className = 'player-info';
+            let nameSpan = document.createElement('span'); nameSpan.className = 'player-name'; nameSpan.innerText = p.name;
+            let statusSpan = document.createElement('span'); statusSpan.className = `player-status ${p.isAlive?'status-alive':'status-dead'}`; statusSpan.innerText = p.isAlive?'❤️ Sống':'💀 Chết';
+            
+            let protectSpan = document.createElement('span');
+            if(p.protected){
+                protectSpan.className = 'protect-status';
+                protectSpan.innerText = '🛡️ Được BV';
+            }
+            
+            let roleSelect = document.createElement('select'); roleSelect.className = 'role-select';
+            let optNone = document.createElement('option'); optNone.value=''; optNone.innerText='❌ Chưa gán'; roleSelect.appendChild(optNone);
+            enabled.forEach(r=>{ let opt = document.createElement('option'); opt.value=r.name; opt.innerText=r.name; if(p.role===r.name) opt.selected=true; roleSelect.appendChild(opt); });
+            roleSelect.onchange = (e)=>{ let old=p.role||"Chưa gán"; p.role=e.target.value||null; addNoteEvent(`🎭 Gán vai ${p.name}: ${old} → ${p.role||"Chưa gán"}`); renderGameScreen(); updateProtectDisplay(); };
+            
+            info.appendChild(nameSpan); info.appendChild(statusSpan); info.appendChild(protectSpan); info.appendChild(roleSelect);
+            
+            let actions = document.createElement('div'); actions.className = 'action-buttons';
+            if(p.isAlive){
+                let kill = document.createElement('button'); kill.innerText='💀 GIẾT'; kill.className='kill-btn'; kill.onclick=()=>{ p.isAlive=false; addNoteEvent(`💀 ${p.name} CHẾT`); renderGameScreen(); updateGameStats(); updateProtectDisplay(); };
+                actions.appendChild(kill);
+                
+                let isProtector = p.role && p.role.toLowerCase().includes("bảo vệ");
+                if(showProtectBtn && isProtector && p.isAlive){
+                    let protectBtn = document.createElement('button');
+                    protectBtn.innerText = '🛡️ BẢO VỆ';
+                    protectBtn.className = 'protect-btn';
+                    protectBtn.onclick = () => {
+                        showProtectModal(p.id);
+                    };
+                    actions.appendChild(protectBtn);
+                }
+            } else {
+                let revive = document.createElement('button'); revive.innerText='❤️ HỒI SINH'; revive.className='revive-btn'; revive.onclick=()=>{ p.isAlive=true; addNoteEvent(`❤️ ${p.name} HỒI SINH`); renderGameScreen(); updateGameStats(); updateProtectDisplay(); };
+                actions.appendChild(revive);
+            }
+            let del = document.createElement('button'); del.innerText='🗑️'; del.onclick=()=>{ if(confirm(`Xóa ${p.name}?`)){ players=players.filter(pl=>pl.id!==p.id); addNoteEvent(`🗑️ Xóa ${p.name}`); renderGameScreen(); updateGameStats(); updateProtectDisplay(); } };
+            actions.appendChild(del);
+            div.appendChild(info); div.appendChild(actions);
+            gamePlayerList.appendChild(div);
+        });
+        updateGameStats(); updateProtectDisplay();
     }
     
-    settingsResetBtn.addEventListener('click', openResetModal);
-    modalEditPlayersBtn.addEventListener('click', editPlayersFromModal);
-    modalEditRolesBtn.addEventListener('click', editRolesFromModal);
-    modalCancelBtn.addEventListener('click', closeResetModal);
-    window.addEventListener('click', (e) => { if (e.target === resetModal) closeResetModal(); });
+    function updateGameStats() { let dead = players.filter(p=>!p.isAlive).length; gameDeadCount.innerText=dead; gameTotalCount.innerText=players.length; gameNightDisplay.innerText = nightCounter===0?"🌑 Đêm 0":"🌙 Đêm "+nightCounter; }
     
-    // Sự kiện màn game với confirm
-    nextNightGameBtn.addEventListener('click', nextNightGame);
-    gameResetRolesBtn.addEventListener('click', resetRolesInGameWithConfirm);
-    newGameRoundBtn.addEventListener('click', newGameRoundWithConfirm);
-    
-    function showScreen(screenName) {
-        screenSetup.classList.add('hidden');
-        screenRoles.classList.add('hidden');
-        screenGame.classList.add('hidden');
-        if (screenName === 'setup') screenSetup.classList.remove('hidden');
-        if (screenName === 'roles') screenRoles.classList.remove('hidden');
-        if (screenName === 'game') screenGame.classList.remove('hidden');
+    function nextNight() { 
+        if(players.length===0) return alert("Chưa có người chơi"); 
+        nightCounter++; 
+        players.forEach(p=>{ 
+            p.protected=false; 
+            p.protectedTargetId = null;
+        }); 
+        addNoteSeparator(`ĐÊM ${nightCounter}`); 
+        addNoteEvent(`🌙 Chuyển sang đêm ${nightCounter} - Xóa toàn bộ bảo vệ`); 
+        renderGameScreen(); 
     }
     
-    function init() {
-        tempPlayerList = [];
-        renderTempPlayerList();
-        initDefaultRolesForSetup();
-        showScreen('setup');
+    function resetRoles() { 
+        players.forEach(p=>{ 
+            p.role=null; 
+            p.protected=false;
+            p.protectedTargetId = null;
+        }); 
+        renderGameScreen(); 
+        addNoteEvent(`🔄 Reset gán vai`); 
+        updateProtectDisplay(); 
     }
+    
+    function newGameRound() { 
+        players.forEach(p=>{ 
+            p.role=null; 
+            p.isAlive=true; 
+            p.protected=false;
+            p.protectedTargetId = null;
+        }); 
+        nightCounter=0; 
+        noteContent=""; 
+        fullscreenNotePad.value=""; 
+        renderGameScreen(); 
+        addNoteSeparator("VÁN MỚI"); 
+        addNoteEvent(`✨ Ván mới`); 
+        updateProtectDisplay(); 
+    }
+    
+    function editPlayers() { if(players.length) tempPlayerList = players.map(p=>p.name); renderTempPlayerList(); showScreen('setup'); addNoteSeparator("CHỈNH SỬA THÀNH VIÊN"); }
+    function editRoles() { renderRolesSetup(); showScreen('roles'); addNoteSeparator("CHỈNH SỬA VAI TRÒ"); }
+    
+    nextNightGameBtn.onclick = nextNight;
+    gameResetRolesBtn.onclick = ()=>showConfirm("⚠️ Reset gán vai?", resetRoles);
+    newGameRoundBtn.onclick = ()=>showConfirm("✨ Ván mới? (Reset hết)", newGameRound);
+    settingsResetBtn.onclick = ()=>{ resetModal.style.display='flex'; };
+    modalEditPlayersBtn.onclick = ()=>{ resetModal.style.display='none'; editPlayers(); };
+    modalEditRolesBtn.onclick = ()=>{ resetModal.style.display='none'; editRoles(); };
+    modalCancelBtn.onclick = ()=>{ resetModal.style.display='none'; };
+
+    function initDefaultRoles() { if(allRoles.length===0){ let def = ["🐺 Ma Sói","👨‍🌾 Dân Làng","🔮 Tiên Tri","🧪 Phù Thủy","🛡️ Bảo Vệ","🏹 Thợ Săn","❤️ Thần Tình Yêu"]; def.forEach((n,i)=>{ allRoles.push({id:Date.now()+i+Math.random(), name:n, enabled:true}); }); } }
+    function renderRolesSetup() {
+        rolesManagerList.innerHTML = '';
+        allRoles.forEach(role=>{
+            let div = document.createElement('div'); div.className='role-manager-item';
+            let label = document.createElement('label'); label.className='role-checkbox-label';
+            let cb = document.createElement('input'); cb.type='checkbox'; cb.checked=role.enabled; cb.onchange = ()=>{ role.enabled = cb.checked; };
+            let span = document.createElement('span'); span.innerText = role.name;
+            label.appendChild(cb); label.appendChild(span);
+            let del = document.createElement('button'); del.innerText='❌ Xóa'; del.className='delete-role-btn'; del.onclick=()=>{ if(confirm(`Xóa "${role.name}"?`)){ allRoles=allRoles.filter(r=>r.id!==role.id); renderRolesSetup(); } };
+            div.appendChild(label); div.appendChild(del); rolesManagerList.appendChild(div);
+        });
+    }
+    function addRole() { let name = addRoleInput.value.trim(); if(!name) return alert("Nhập tên"); if(allRoles.some(r=>r.name===name)) return alert("Đã tồn tại"); allRoles.push({id:Date.now()+Math.random(), name:name, enabled:true}); addRoleInput.value=""; renderRolesSetup(); }
+    addRoleInSetupBtn.onclick = addRole;
+    backToSetupBtn.onclick = ()=>{ if(players.length) tempPlayerList = players.map(p=>p.name); renderTempPlayerList(); showScreen('setup'); };
+    function finishAndGo() { let enabledNames = getEnabledRoles().map(r=>r.name); players.forEach(p=>{ if(p.role && !enabledNames.includes(p.role)) p.role=null; p.protected=false; p.protectedTargetId = null; }); nightCounter=0; renderGameScreen(); showScreen('game'); addNoteSeparator("VÀO BÀN CHƠI"); addNoteEvent("🌑 Đêm 0"); updateProtectDisplay(); }
+    finishRolesBtn.onclick = finishAndGo;
+    function confirmPlayers() { if(tempPlayerList.length===0) return alert("Chưa có thành viên"); players = tempPlayerList.map(n=>({id:Date.now()+Math.random(), name:n, role:null, isAlive:true, protected:false, protectedTargetId:null})); if(allRoles.length===0) initDefaultRoles(); renderRolesSetup(); showScreen('roles'); addNoteSeparator("CHUYỂN SANG VAI TRÒ"); }
+    confirmPlayersBtn.onclick = confirmPlayers;
+    function showScreen(name){ screenSetup.classList.add('hidden'); screenRoles.classList.add('hidden'); screenGame.classList.add('hidden'); if(name==='setup') screenSetup.classList.remove('hidden'); if(name==='roles') screenRoles.classList.remove('hidden'); if(name==='game') screenGame.classList.remove('hidden'); }
+    function init(){ tempPlayerList=[]; renderTempPlayerList(); initDefaultRoles(); showScreen('setup'); }
     init();
 </script>
 </body>
