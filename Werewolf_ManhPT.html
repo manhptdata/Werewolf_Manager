@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Quản trò Ma Sói </title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2b1d 0%, #1a3f2a 100%);
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: #f3e9c0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 1.8rem;
+            border: 1px solid rgba(255, 215, 150, 0.3);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 0 #2c1a0c;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-left: 6px solid #ffc857;
+            padding-left: 14px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        input, button, select, textarea {
+            background: #2f241b;
+            border: 1px solid #c9aa6f;
+            color: #ffefcf;
+            padding: 10px 18px;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        button {
+            cursor: pointer;
+            background: #5e3a2b;
+            transition: 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        button.primary {
+            background: #a3522c;
+            border-color: #ffcd94;
+        }
+
+        button.warning {
+            background: #2d5a2c;
+        }
+
+        button.danger {
+            background: #7a2e2e;
+        }
+
+        .player-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border-radius: 20px;
+            background: #1f1812a0;
+            padding: 10px;
+        }
+
+        .player-card-item {
+            background: #2c221bb3;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+            border-left: 5px solid #daa349;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 2;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 100px;
+        }
+
+        .player-status {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-alive { background: #2a6b2f; color: #c8ffb0; }
+        .status-dead { background: #6b2a2a; color: #ffb0b0; text-decoration: line-through; }
+
+        .role-select {
+            background: #3b2b1f;
+            padding: 6px 12px;
+            border-radius: 30px;
+            min-width: 130px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .kill-btn { background: #8b3c3c; }
+        .revive-btn { background: #3c8b4a; }
+
+        .info-bar {
+            background: #1f1a14b3;
+            border-radius: 60px;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            gap: 12px;
+        }
+
+        .role-manager-item {
+            background: #1f1914;
+            border-radius: 50px;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .role-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .delete-role-btn {
+            background: #7a2e2e;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .add-role-modal {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .flex-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0 10px;
+        }
+
+        .counter-badge {
+            background: #2c1e14;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Modal cho thiết lập lại */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #2a241ee6;
+            border-radius: 32px;
+            padding: 28px;
+            width: 90%;
+            max-width: 450px;
+            border: 2px solid #ffcd94;
+            text-align: center;
+        }
+
+        .modal-box h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Notepad */
+        .notepad {
+            margin-top: 20px;
+            background: #1f1a14cc;
+            border-radius: 24px;
+            padding: 15px;
+        }
+
+        .notepad label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .notepad textarea {
+            width: 100%;
+            border-radius: 20px;
+            background: #2c241e;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 0.9rem;
+            padding: 12px;
+        }
+
+        /* Custom confirm dialog style */
+        .custom-confirm {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirm-box {
+            background: #2a241ee6;
+            border-radius: 32px;
+            padding: 28px;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid #ffaa44;
+            text-align: center;
+        }
+
+        .confirm-box p {
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- MÀN HÌNH 1: THIẾT LẬP DANH SÁCH NGƯỜI CHƠI -->
+    <div id="screenSetup" class="screen">
+        <div class="header-stats">
+            <h1>🐺 THIẾT LẬP THÀNH VIÊN</h1>
+            <div class="counter-badge" id="playerCounter">👥 Số lượng: 0</div>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="newPlayerName" placeholder="Nhập tên người chơi" maxlength="25">
+            <button id="addPlayerToListBtn" class="primary">➕ Thêm thành viên</button>
+        </div>
+        
+        <h2>📋 Danh sách thành viên</h2>
+        <div id="tempPlayerNames" class="player-list">
+            <div style="text-align:center; padding:20px;">Chưa có thành viên, hãy thêm người chơi</div>
+        </div>
+        
+        <div class="flex-btns">
+            <button id="clearAllPlayersBtn" class="danger">🗑️ Xóa tất cả</button>
+            <button id="confirmPlayersBtn" class="primary" style="margin-left:auto;">✅ TIẾP THEO: THIẾT LẬP VAI TRÒ</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 2: THIẾT LẬP VAI TRÒ -->
+    <div id="screenRoles" class="screen hidden">
+        <h1>🎭 THIẾT LẬP VAI TRÒ</h1>
+        <p>✅ Chọn những vai trò sẽ xuất hiện trong game (bật/tắt tùy ý). Có thể thêm/xóa vai trò.</p>
+        <div id="rolesManagerList" class="player-list" style="max-height: 350px;"></div>
+        <div class="add-role-modal">
+            <input type="text" id="addRoleInput" placeholder="Nhập vai trò mới, VD: Già làng">
+            <button id="addRoleInSetupBtn" class="primary">➕ Thêm</button>
+        </div>
+        <div class="flex-btns">
+            <button id="backToSetupBtn" class="warning">◀ Quay lại sửa tên</button>
+            <button id="finishRolesBtn" class="primary">🎮 VÀO BÀN CHƠI 🎮</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 3: BÀN CHƠI CHÍNH -->
+    <div id="screenGame" class="screen hidden">
+        <h1>🐺 BÀN CHƠI MA SÓI</h1>
+        <div class="flex-btns" style="justify-content: space-between;">
+            <button id="settingsResetBtn" class="warning" style="background:#4a382a;">⚙️ THIẾT LẬP LẠI</button>
+            <div>
+                <button id="gameResetRolesBtn" class="warning">🔄 Reset gán vai</button>
+                <button id="newGameRoundBtn" class="primary">✨ VÁN MỚI (giữ tên/vai)</button>
+            </div>
+        </div>
+        <div id="gamePlayerList" class="player-list" style="max-height: 350px;"></div>
+        <div class="info-bar">
+            <span>🌙 <strong id="gameNightDisplay">Đêm 0</strong></span>
+            <span>💀 Số người chết: <strong id="gameDeadCount">0</strong></span>
+            <span>👥 Tổng số: <strong id="gameTotalCount">0</strong></span>
+            <button id="nextNightGameBtn">🌙 QUA ĐÊM TIẾP THEO</button>
+        </div>
+        
+        <!-- Notepad ghi chú -->
+        <div class="notepad">
+            <label>📝 GHI CHÚ SỰ KIỆN (quản trò ghi lại)</label>
+            <textarea id="notePad" rows="4" placeholder="Ví dụ: Đêm 1: A chết, B bị câm..."></textarea>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thiết lập lại -->
+<div id="resetModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>⚠️ CẢNH BÁO</h3>
+        <p>Việc thay đổi thành viên hoặc vai trò sẽ <strong style="color:#ffaa66;">làm mới toàn bộ ván chơi hiện tại</strong> (mất dữ liệu gán vai, sinh tử, đêm).<br>Bạn có chắc chắn muốn tiếp tục?</p>
+        <div class="modal-buttons">
+            <button id="modalEditPlayersBtn" class="primary">✏️ Sửa thành viên</button>
+            <button id="modalEditRolesBtn" class="primary">🎭 Sửa vai trò</button>
+            <button id="modalCancelBtn" class="warning">❌ Hủy</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirm cho các hành động -->
+<div id="customConfirm" class="custom-confirm">
+    <div class="confirm-box">
+        <p id="confirmMessage">⚠️ Bạn có chắc chắn?</p>
+        <div class="confirm-buttons">
+            <button id="confirmYesBtn" class="primary">✅ Xác nhận</button>
+            <button id="confirmNoBtn" class="warning">❌ Hủy</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- DỮ LIỆU TOÀN CỤC ----------
+    let players = [];            // { id, name, role, isAlive }
+    let allRoles = [];           // { id, name, enabled }
+    let nightCounter = 0;
+    let noteContent = "";        // lưu nội dung ghi chú
+    
+    // Custom confirm handler
+    let pendingAction = null;
+    const customConfirm = document.getElementById('customConfirm');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmYesBtn = document.getElementById('confirmYesBtn');
+    const confirmNoBtn = document.getElementById('confirmNoBtn');
+    
+    function showConfirm(message, onConfirm) {
+        confirmMessage.innerText = message;
+        customConfirm.style.display = 'flex';
+        pendingAction = onConfirm;
+    }
+    
+    function hideConfirm() {
+        customConfirm.style.display = 'none';
+        pendingAction = null;
+    }
+    
+    confirmYesBtn.addEventListener('click', () => {
+        if (pendingAction) {
+            pendingAction();
+        }
+        hideConfirm();
+    });
+    
+    confirmNoBtn.addEventListener('click', hideConfirm);
+    
+    // DOM elements
+    const screenSetup = document.getElementById('screenSetup');
+    const screenRoles = document.getElementById('screenRoles');
+    const screenGame = document.getElementById('screenGame');
+    
+    // Setup màn 1
+    const newPlayerName = document.getElementById('newPlayerName');
+    const addPlayerToListBtn = document.getElementById('addPlayerToListBtn');
+    const clearAllPlayersBtn = document.getElementById('clearAllPlayersBtn');
+    const tempPlayerNamesDiv = document.getElementById('tempPlayerNames');
+    const confirmPlayersBtn = document.getElementById('confirmPlayersBtn');
+    const playerCounterSpan = document.getElementById('playerCounter');
+    
+    // Màn 2
+    const rolesManagerList = document.getElementById('rolesManagerList');
+    const addRoleInput = document.getElementById('addRoleInput');
+    const addRoleInSetupBtn = document.getElementById('addRoleInSetupBtn');
+    const backToSetupBtn = document.getElementById('backToSetupBtn');
+    const finishRolesBtn = document.getElementById('finishRolesBtn');
+    
+    // Màn 3
+    const gamePlayerList = document.getElementById('gamePlayerList');
+    const gameNightDisplay = document.getElementById('gameNightDisplay');
+    const gameDeadCount = document.getElementById('gameDeadCount');
+    const gameTotalCount = document.getElementById('gameTotalCount');
+    const nextNightGameBtn = document.getElementById('nextNightGameBtn');
+    const settingsResetBtn = document.getElementById('settingsResetBtn');
+    const gameResetRolesBtn = document.getElementById('gameResetRolesBtn');
+    const newGameRoundBtn = document.getElementById('newGameRoundBtn');
+    const notePad = document.getElementById('notePad');
+    
+    // Modal
+    const resetModal = document.getElementById('resetModal');
+    const modalEditPlayersBtn = document.getElementById('modalEditPlayersBtn');
+    const modalEditRolesBtn = document.getElementById('modalEditRolesBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    
+    // ========== HÀM GHI CHÚ TỰ ĐỘNG ==========
+    function addNoteSeparator(title) {
+        const timestamp = new Date().toLocaleTimeString('vi-VN');
+        const separator = `\n[${timestamp}] ═══════ ${title} ═══════\n`;
+        noteContent = notePad.value + separator;
+        notePad.value = noteContent;
+        notePad.scrollTop = notePad.scrollHeight;
+    }
+    
+    function addNoteEvent(eventText) {
+        const timestamp = new Date().toLocaleTimeString('vi-VN');
+        noteContent = notePad.value + `[${timestamp}] ${eventText}\n`;
+        notePad.value = noteContent;
+        notePad.scrollTop = notePad.scrollHeight;
+    }
+    
+    function bindNoteEvents() {
+        notePad.addEventListener('input', (e) => {
+            noteContent = e.target.value;
+        });
+    }
+    
+    // ========== DANH SÁCH TẠM (MÀN 1) ==========
+    let tempPlayerList = [];
+    
+    function updatePlayerCounter() {
+        playerCounterSpan.innerHTML = `👥 Số lượng: ${tempPlayerList.length}`;
+    }
+    
+    function renderTempPlayerList() {
+        if (!tempPlayerNamesDiv) return;
+        if (tempPlayerList.length === 0) {
+            tempPlayerNamesDiv.innerHTML = '<div style="text-align:center; padding:20px;">✨ Chưa có thành viên, hãy thêm người chơi</div>';
+            updatePlayerCounter();
+            return;
+        }
+        const fragment = document.createDocumentFragment();
+        tempPlayerList.forEach((playerName, idx) => {
+            const div = document.createElement('div');
+            div.className = 'player-card-item';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.innerText = playerName;
+            
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.value = playerName;
+            editInput.style.flex = '1';
+            editInput.style.minWidth = '120px';
+            editInput.addEventListener('change', (e) => {
+                let newVal = e.target.value.trim();
+                if (newVal === "") newVal = "???";
+                tempPlayerList[idx] = newVal;
+                renderTempPlayerList();
+            });
+            
+            infoDiv.appendChild(nameSpan);
+            infoDiv.appendChild(editInput);
+            
+            const delBtn = document.createElement('button');
+            delBtn.innerText = '❌ Xóa';
+            delBtn.style.background = '#7a2e2e';
+            delBtn.onclick = () => {
+                tempPlayerList.splice(idx, 1);
+                renderTempPlayerList();
+            };
+            
+            div.appendChild(infoDiv);
+            div.appendChild(delBtn);
+            fragment.appendChild(div);
+        });
+        tempPlayerNamesDiv.innerHTML = '';
+        tempPlayerNamesDiv.appendChild(fragment);
+        updatePlayerCounter();
+    }
+    
+    function addNewPlayer() {
+        let name = newPlayerName.value.trim();
+        if (name === "") {
+            alert("Vui lòng nhập tên người chơi");
+            return;
+        }
+        if (tempPlayerList.some(p => p.toLowerCase() === name.toLowerCase())) {
+            alert("Tên này đã có trong danh sách!");
+            return;
+        }
+        tempPlayerList.push(name);
+        newPlayerName.value = "";
+        renderTempPlayerList();
+    }
+    
+    function clearAllTempPlayers() {
+        if (tempPlayerList.length === 0) return;
+        if (confirm("Xóa tất cả thành viên?")) {
+            tempPlayerList = [];
+            renderTempPlayerList();
+        }
+    }
+    
+    addPlayerToListBtn.addEventListener('click', addNewPlayer);
+    clearAllPlayersBtn.addEventListener('click', clearAllTempPlayers);
+    newPlayerName.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewPlayer(); });
+    
+    function confirmPlayersAndContinue() {
+        if (tempPlayerList.length === 0) {
+            alert("Chưa có thành viên nào! Hãy thêm người chơi.");
+            return;
+        }
+        players = tempPlayerList.map(name => ({
+            id: Date.now() + Math.random() * 10000,
+            name: name,
+            role: null,
+            isAlive: true
+        }));
+        if (allRoles.length === 0) initDefaultRolesForSetup();
+        renderRolesSetup();
+        showScreen('roles');
+        addNoteSeparator("CHUYỂN SANG THIẾT LẬP VAI TRÒ");
+    }
+    confirmPlayersBtn.addEventListener('click', confirmPlayersAndContinue);
+    
+    // ========== KHỞI TẠO VAI TRÒ MẶC ĐỊNH ==========
+    function initDefaultRolesForSetup() {
+        if (allRoles.length === 0) {
+            const defaults = ["🐺 Ma Sói", "👨‍🌾 Dân Làng", "🔮 Tiên Tri", "🧪 Phù Thủy", "🛡️ Bảo Vệ", "🏹 Thợ Săn", "❤️ Thần Tình Yêu"];
+            defaults.forEach((name, idx) => {
+                allRoles.push({ id: Date.now() + idx + Math.random(), name: name, enabled: true });
+            });
+        }
+    }
+    
+    function renderRolesSetup() {
+        if (!rolesManagerList) return;
+        if (allRoles.length === 0) {
+            rolesManagerList.innerHTML = '<div style="padding:20px; text-align:center;">Chưa có vai trò, hãy thêm mới</div>';
+            return;
+        }
+        rolesManagerList.innerHTML = '';
+        allRoles.forEach(role => {
+            const div = document.createElement('div');
+            div.className = 'role-manager-item';
+            const label = document.createElement('label');
+            label.className = 'role-checkbox-label';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = role.enabled;
+            cb.addEventListener('change', (e) => { role.enabled = e.target.checked; });
+            const span = document.createElement('span');
+            span.innerText = role.name;
+            label.appendChild(cb);
+            label.appendChild(span);
+            const delBtn = document.createElement('button');
+            delBtn.innerText = '❌ Xóa';
+            delBtn.className = 'delete-role-btn';
+            delBtn.onclick = () => {
+                if (confirm(`Xóa "${role.name}"?`)) {
+                    allRoles = allRoles.filter(r => r.id !== role.id);
+                    renderRolesSetup();
+                }
+            };
+            div.appendChild(label);
+            div.appendChild(delBtn);
+            rolesManagerList.appendChild(div);
+        });
+    }
+    
+    function addRoleInSetup() {
+        let newName = addRoleInput.value.trim();
+        if (!newName) { alert("Nhập tên vai trò"); return; }
+        if (allRoles.some(r => r.name === newName)) { alert("Đã tồn tại"); return; }
+        allRoles.push({ id: Date.now() + Math.random(), name: newName, enabled: true });
+        addRoleInput.value = '';
+        renderRolesSetup();
+    }
+    
+    addRoleInSetupBtn.addEventListener('click', addRoleInSetup);
+    addRoleInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addRoleInSetup(); });
+    
+    function getEnabledRoles() {
+        return allRoles.filter(r => r.enabled === true);
+    }
+    
+    backToSetupBtn.addEventListener('click', () => {
+        if (players.length > 0) {
+            tempPlayerList = players.map(p => p.name);
+        }
+        renderTempPlayerList();
+        showScreen('setup');
+        addNoteSeparator("QUAY LẠI CHỈNH SỬA THÀNH VIÊN");
+    });
+    
+    function finishAndGoToGame() {
+        const enabledNames = getEnabledRoles().map(r => r.name);
+        players.forEach(p => {
+            if (p.role && !enabledNames.includes(p.role)) p.role = null;
+        });
+        nightCounter = 0;
+        renderGameScreen();
+        showScreen('game');
+        addNoteSeparator("VÀO BÀN CHƠI - BẮT ĐẦU GAME");
+        addNoteEvent("🌑 Đêm 0 (khởi đầu)");
+    }
+    finishRolesBtn.addEventListener('click', finishAndGoToGame);
+    
+    // ========== MÀN HÌNH GAME ==========
+    function renderGameScreen() {
+        if (!gamePlayerList) return;
+        const enabledRoles = getEnabledRoles();
+        if (players.length === 0) {
+            gamePlayerList.innerHTML = '<div style="text-align:center;padding:20px;">Chưa có người chơi, quay lại chỉnh sửa thành viên</div>';
+            gameTotalCount.innerText = '0';
+            return;
+        }
+        gameTotalCount.innerText = players.length;
+        const fragment = document.createDocumentFragment();
+        players.forEach(player => {
+            const div = document.createElement('div');
+            div.className = 'player-card-item';
+            if (!player.isAlive) div.style.opacity = '0.65';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-info';
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.innerText = player.name;
+            const statusSpan = document.createElement('span');
+            statusSpan.className = `player-status ${player.isAlive ? 'status-alive' : 'status-dead'}`;
+            statusSpan.innerText = player.isAlive ? '❤️ Sống' : '💀 Chết';
+            
+            const roleSelect = document.createElement('select');
+            roleSelect.className = 'role-select';
+            const optNone = document.createElement('option');
+            optNone.value = '';
+            optNone.innerText = '❌ Chưa gán';
+            roleSelect.appendChild(optNone);
+            enabledRoles.forEach(role => {
+                const opt = document.createElement('option');
+                opt.value = role.name;
+                opt.innerText = role.name;
+                if (player.role === role.name) opt.selected = true;
+                roleSelect.appendChild(opt);
+            });
+            roleSelect.addEventListener('change', (e) => {
+                const oldRole = player.role || "Chưa gán";
+                player.role = e.target.value || null;
+                const newRole = player.role || "Chưa gán";
+                addNoteEvent(`🎭 Gán vai cho ${player.name}: ${oldRole} → ${newRole}`);
+                renderGameScreen();
+            });
+            
+            infoDiv.appendChild(nameSpan);
+            infoDiv.appendChild(statusSpan);
+            infoDiv.appendChild(roleSelect);
+            
+            const actionDiv = document.createElement('div');
+            actionDiv.className = 'action-buttons';
+            if (player.isAlive) {
+                const killBtn = document.createElement('button');
+                killBtn.innerText = '💀 GIẾT';
+                killBtn.className = 'kill-btn';
+                killBtn.onclick = () => { 
+                    player.isAlive = false; 
+                    addNoteEvent(`💀 ${player.name} ĐÃ CHẾT`);
+                    renderGameScreen(); 
+                    updateGameStats(); 
+                };
+                actionDiv.appendChild(killBtn);
+            } else {
+                const reviveBtn = document.createElement('button');
+                reviveBtn.innerText = '❤️ HỒI SINH';
+                reviveBtn.className = 'revive-btn';
+                reviveBtn.onclick = () => { 
+                    player.isAlive = true; 
+                    addNoteEvent(`❤️ ${player.name} ĐƯỢC HỒI SINH`);
+                    renderGameScreen(); 
+                    updateGameStats(); 
+                };
+                actionDiv.appendChild(reviveBtn);
+            }
+            const delBtn = document.createElement('button');
+            delBtn.innerText = '🗑️';
+            delBtn.style.background = '#5e2a2a';
+            delBtn.onclick = () => {
+                if (confirm(`Xóa ${player.name}?`)) {
+                    addNoteEvent(`🗑️ Đã xóa ${player.name} khỏi danh sách`);
+                    players = players.filter(p => p.id !== player.id);
+                    renderGameScreen();
+                    updateGameStats();
+                }
+            };
+            actionDiv.appendChild(delBtn);
+            
+            div.appendChild(infoDiv);
+            div.appendChild(actionDiv);
+            fragment.appendChild(div);
+        });
+        gamePlayerList.innerHTML = '';
+        gamePlayerList.appendChild(fragment);
+        updateGameStats();
+    }
+    
+    function updateGameStats() {
+        const dead = players.filter(p => !p.isAlive).length;
+        gameDeadCount.innerText = dead;
+        gameTotalCount.innerText = players.length;
+        if (nightCounter === 0) gameNightDisplay.innerText = "🌑 Đêm 0 (khởi đầu)";
+        else gameNightDisplay.innerText = `🌙 Đêm thứ ${nightCounter}`;
+    }
+    
+    function nextNightGame() {
+        if (players.length === 0) { alert("Chưa có người chơi"); return; }
+        nightCounter++;
+        updateGameStats();
+        addNoteSeparator(`ĐÊM ${nightCounter}`);
+        addNoteEvent(`🌙 Chuyển sang đêm ${nightCounter}`);
+    }
+    
+    function resetRolesInGameWithConfirm() {
+        showConfirm("⚠️ Reset gán vai sẽ xóa tất cả vai trò đã gán cho người chơi. Bạn có chắc chắn?", () => {
+            players.forEach(p => { p.role = null; });
+            renderGameScreen();
+            addNoteEvent(`🔄 Reset toàn bộ vai trò đã gán`);
+        });
+    }
+    
+    function newGameRoundWithConfirm() {
+        showConfirm("✨ Bắt đầu ván mới sẽ hồi sinh toàn bộ người chơi, xóa gán vai và đưa về đêm 0. Bạn có chắc chắn?", () => {
+            players.forEach(p => {
+                p.role = null;
+                p.isAlive = true;
+            });
+            nightCounter = 0;
+            renderGameScreen();
+            addNoteSeparator("VÁN MỚI");
+            addNoteEvent(`✨ Bắt đầu ván mới - giữ nguyên thành viên và danh sách vai trò`);
+        });
+    }
+    
+    // Modal handlers
+    function openResetModal() {
+        resetModal.style.display = 'flex';
+    }
+    
+    function closeResetModal() {
+        resetModal.style.display = 'none';
+    }
+    
+    function editPlayersFromModal() {
+        closeResetModal();
+        if (players.length > 0) {
+            tempPlayerList = players.map(p => p.name);
+        }
+        renderTempPlayerList();
+        showScreen('setup');
+        addNoteSeparator("CHỈNH SỬA THÀNH VIÊN (từ bàn chơi)");
+    }
+    
+    function editRolesFromModal() {
+        closeResetModal();
+        renderRolesSetup();
+        showScreen('roles');
+        addNoteSeparator("CHỈNH SỬA VAI TRÒ (từ bàn chơi)");
+    }
+    
+    settingsResetBtn.addEventListener('click', openResetModal);
+    modalEditPlayersBtn.addEventListener('click', editPlayersFromModal);
+    modalEditRolesBtn.addEventListener('click', editRolesFromModal);
+    modalCancelBtn.addEventListener('click', closeResetModal);
+    window.addEventListener('click', (e) => { if (e.target === resetModal) closeResetModal(); });
+    
+    // Sự kiện màn game với confirm
+    nextNightGameBtn.addEventListener('click', nextNightGame);
+    gameResetRolesBtn.addEventListener('click', resetRolesInGameWithConfirm);
+    newGameRoundBtn.addEventListener('click', newGameRoundWithConfirm);
+    
+    function showScreen(screenName) {
+        screenSetup.classList.add('hidden');
+        screenRoles.classList.add('hidden');
+        screenGame.classList.add('hidden');
+        if (screenName === 'setup') screenSetup.classList.remove('hidden');
+        if (screenName === 'roles') screenRoles.classList.remove('hidden');
+        if (screenName === 'game') screenGame.classList.remove('hidden');
+    }
+    
+    function init() {
+        tempPlayerList = [];
+        renderTempPlayerList();
+        initDefaultRolesForSetup();
+        showScreen('setup');
+        bindNoteEvents();
+    }
+    init();
+</script>
+</body>
+</html>
