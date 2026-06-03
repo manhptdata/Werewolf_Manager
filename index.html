@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Quản trò Ma Sói </title>
+    <title>Quản trò Ma Sói - Bàn chơi chuyên nghiệp</title>
     <style>
         * {
             box-sizing: border-box;
@@ -259,30 +259,51 @@
             flex-wrap: wrap;
         }
 
-        /* Notepad */
-        .notepad {
-            margin-top: 20px;
-            background: #1f1a14cc;
-            border-radius: 24px;
-            padding: 15px;
-        }
-
-        .notepad label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .notepad textarea {
+        /* Fullscreen Notepad Modal */
+        .fullscreen-notepad {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-radius: 20px;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1200;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        .fullscreen-notepad .notepad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .fullscreen-notepad h2 {
+            border-left-color: #ffc857;
+            margin: 0;
+        }
+
+        .fullscreen-notepad textarea {
+            flex: 1;
+            width: 100%;
+            border-radius: 28px;
             background: #2c241e;
-            resize: vertical;
+            resize: none;
             font-family: monospace;
-            font-size: 0.9rem;
-            padding: 12px;
+            font-size: 1.1rem;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .close-notepad-btn {
+            background: #7a2e2e;
+            padding: 10px 24px;
+            font-size: 1.1rem;
         }
 
         /* Custom confirm dialog style */
@@ -319,6 +340,32 @@
             display: flex;
             gap: 16px;
             justify-content: center;
+        }
+
+        /* Layout bàn chơi */
+        .game-layout {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+        }
+
+        .game-toolbar {
+            background: rgba(25, 20, 16, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 10px 0;
+            margin-bottom: 16px;
+        }
+
+        .game-players-area {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .game-players-area .player-list {
+            max-height: 55vh;
+            min-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -365,27 +412,45 @@
     <!-- MÀN HÌNH 3: BÀN CHƠI CHÍNH -->
     <div id="screenGame" class="screen hidden">
         <h1>🐺 BÀN CHƠI MA SÓI</h1>
-        <div class="flex-btns" style="justify-content: space-between;">
-            <button id="settingsResetBtn" class="warning" style="background:#4a382a;">⚙️ THIẾT LẬP LẠI</button>
-            <div>
-                <button id="gameResetRolesBtn" class="warning">🔄 Reset gán vai</button>
-                <button id="newGameRoundBtn" class="primary">✨ VÁN MỚI (giữ tên/vai)</button>
+        
+        <div class="game-layout">
+            <!-- Toolbar -->
+            <div class="game-toolbar">
+                <div class="flex-btns" style="justify-content: space-between; margin: 0;">
+                    <div style="display: flex; gap: 12px;">
+                        <button id="settingsResetBtn" class="warning" style="background:#4a382a;">⚙️ THIẾT LẬP LẠI</button>
+                        <button id="openNotepadBtn" class="warning" style="background:#4a382a;">📝 GHI CHÚ</button>
+                    </div>
+                    <div>
+                        <button id="gameResetRolesBtn" class="warning">🔄 Reset gán vai</button>
+                        <button id="newGameRoundBtn" class="primary">✨ VÁN MỚI</button>
+                    </div>
+                </div>
+                <div class="info-bar" style="margin-top: 12px; margin-bottom: 0;">
+                    <span>🌙 <strong id="gameNightDisplay">Đêm 0</strong></span>
+                    <span>💀 Số người chết: <strong id="gameDeadCount">0</strong></span>
+                    <span>👥 Tổng số: <strong id="gameTotalCount">0</strong></span>
+                    <button id="nextNightGameBtn">🌙 QUA ĐÊM TIẾP THEO</button>
+                </div>
+            </div>
+            
+            <!-- Khu vực danh sách người chơi -->
+            <div class="game-players-area">
+                <div id="gamePlayerList" class="player-list" style="max-height: 55vh; min-height: 300px;">
+                    <!-- dynamic content -->
+                </div>
             </div>
         </div>
-        <div id="gamePlayerList" class="player-list" style="max-height: 350px;"></div>
-        <div class="info-bar">
-            <span>🌙 <strong id="gameNightDisplay">Đêm 0</strong></span>
-            <span>💀 Số người chết: <strong id="gameDeadCount">0</strong></span>
-            <span>👥 Tổng số: <strong id="gameTotalCount">0</strong></span>
-            <button id="nextNightGameBtn">🌙 QUA ĐÊM TIẾP THEO</button>
-        </div>
-        
-        <!-- Notepad ghi chú -->
-        <div class="notepad">
-            <label>📝 GHI CHÚ SỰ KIỆN (quản trò ghi lại)</label>
-            <textarea id="notePad" rows="4" placeholder="Ví dụ: Đêm 1: A chết, B bị câm..."></textarea>
-        </div>
     </div>
+</div>
+
+<!-- Fullscreen Notepad Modal -->
+<div id="fullscreenNotepad" class="fullscreen-notepad">
+    <div class="notepad-header">
+        <h2>📝 GHI CHÚ SỰ KIỆN</h2>
+        <button id="closeNotepadBtn" class="close-notepad-btn">❌ ĐÓNG</button>
+    </div>
+    <textarea id="fullscreenNotePad" rows="20" placeholder="Ghi chú sự kiện..."></textarea>
 </div>
 
 <!-- Modal thiết lập lại -->
@@ -417,7 +482,7 @@
     let players = [];            // { id, name, role, isAlive }
     let allRoles = [];           // { id, name, enabled }
     let nightCounter = 0;
-    let noteContent = "";        // lưu nội dung ghi chú
+    let noteContent = "";
     
     // Custom confirm handler
     let pendingAction = null;
@@ -475,7 +540,12 @@
     const settingsResetBtn = document.getElementById('settingsResetBtn');
     const gameResetRolesBtn = document.getElementById('gameResetRolesBtn');
     const newGameRoundBtn = document.getElementById('newGameRoundBtn');
-    const notePad = document.getElementById('notePad');
+    
+    // Notepad fullscreen
+    const fullscreenNotepad = document.getElementById('fullscreenNotepad');
+    const openNotepadBtn = document.getElementById('openNotepadBtn');
+    const closeNotepadBtn = document.getElementById('closeNotepadBtn');
+    const fullscreenNotePad = document.getElementById('fullscreenNotePad');
     
     // Modal
     const resetModal = document.getElementById('resetModal');
@@ -483,26 +553,40 @@
     const modalEditRolesBtn = document.getElementById('modalEditRolesBtn');
     const modalCancelBtn = document.getElementById('modalCancelBtn');
     
+    // ========== NOTEPAD FULLSCREEN ==========
+    function syncNoteToFullscreen() {
+        fullscreenNotePad.value = noteContent;
+    }
+    
+    function syncNoteFromFullscreen() {
+        noteContent = fullscreenNotePad.value;
+    }
+    
+    function openFullscreenNotepad() {
+        syncNoteToFullscreen();
+        fullscreenNotepad.style.display = 'flex';
+    }
+    
+    function closeFullscreenNotepad() {
+        syncNoteFromFullscreen();
+        fullscreenNotepad.style.display = 'none';
+    }
+    
+    openNotepadBtn.addEventListener('click', openFullscreenNotepad);
+    closeNotepadBtn.addEventListener('click', closeFullscreenNotepad);
+    
     // ========== HÀM GHI CHÚ TỰ ĐỘNG ==========
     function addNoteSeparator(title) {
         const timestamp = new Date().toLocaleTimeString('vi-VN');
         const separator = `\n[${timestamp}] ═══════ ${title} ═══════\n`;
-        noteContent = notePad.value + separator;
-        notePad.value = noteContent;
-        notePad.scrollTop = notePad.scrollHeight;
+        noteContent = noteContent + separator;
+        fullscreenNotePad.value = noteContent;
     }
     
     function addNoteEvent(eventText) {
         const timestamp = new Date().toLocaleTimeString('vi-VN');
-        noteContent = notePad.value + `[${timestamp}] ${eventText}\n`;
-        notePad.value = noteContent;
-        notePad.scrollTop = notePad.scrollHeight;
-    }
-    
-    function bindNoteEvents() {
-        notePad.addEventListener('input', (e) => {
-            noteContent = e.target.value;
-        });
+        noteContent = noteContent + `[${timestamp}] ${eventText}\n`;
+        fullscreenNotePad.value = noteContent;
     }
     
     // ========== DANH SÁCH TẠM (MÀN 1) ==========
@@ -812,17 +896,20 @@
     }
     
     function newGameRoundWithConfirm() {
-        showConfirm("✨ Bắt đầu ván mới sẽ hồi sinh toàn bộ người chơi, xóa gán vai và đưa về đêm 0. Bạn có chắc chắn?", () => {
-            players.forEach(p => {
-                p.role = null;
-                p.isAlive = true;
-            });
-            nightCounter = 0;
-            renderGameScreen();
-            addNoteSeparator("VÁN MỚI");
-            addNoteEvent(`✨ Bắt đầu ván mới - giữ nguyên thành viên và danh sách vai trò`);
+    showConfirm("✨ Bắt đầu ván mới sẽ hồi sinh toàn bộ người chơi, xóa gán vai, reset ghi chú và đưa về đêm 0. Bạn có chắc chắn?", () => {
+        players.forEach(p => {
+            p.role = null;
+            p.isAlive = true;
         });
-    }
+        nightCounter = 0;
+        // Reset ghi chú
+        noteContent = "";
+        fullscreenNotePad.value = "";
+        renderGameScreen();
+        addNoteSeparator("VÁN MỚI");
+        addNoteEvent(`✨ Bắt đầu ván mới - giữ nguyên thành viên và danh sách vai trò`);
+    });
+}
     
     // Modal handlers
     function openResetModal() {
@@ -875,7 +962,6 @@
         renderTempPlayerList();
         initDefaultRolesForSetup();
         showScreen('setup');
-        bindNoteEvents();
     }
     init();
 </script>
