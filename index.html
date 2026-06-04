@@ -554,6 +554,31 @@
             font-size: 0.9rem;
             color: #ffcd94;
         }
+
+        /* Modal xác nhận qua đêm */
+        .next-night-confirm {
+            text-align: center;
+        }
+        .next-night-confirm p {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+        .next-night-confirm .night-number {
+            color: #ffaa44;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+        .confirm-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .confirm-buttons button {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -622,6 +647,20 @@
             </div>
             <div class="game-players-area">
                 <div id="gamePlayerList" class="player-list" style="max-height: 100vh;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận qua đêm -->
+<div id="nextNightConfirmModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="next-night-confirm">
+            <h3>🌙 XÁC NHẬN QUA ĐÊM</h3>
+            <p>Bạn có chắc chắn muốn chuyển sang <strong class="night-number" id="nextNightNumber">Đêm tiếp theo</strong> không?</p>
+            <div class="confirm-buttons">
+                <button id="confirmNextNightBtn" class="primary">✅ Tiếp tục</button>
+                <button id="cancelNextNightBtn" class="warning">❌ Hủy bỏ</button>
             </div>
         </div>
     </div>
@@ -748,7 +787,27 @@
     let roleCheckStatus = {};
     let currentCupidId = null;
     let cupidFirstPick = null;
-    let nightSnapshot = null;
+    let nightSnapshot = null;  // Snapshot lưu trạng thái ĐẦU ĐÊM HIỆN TẠI
+    
+    // Modal xác nhận qua đêm
+    const nextNightConfirmModal = document.getElementById('nextNightConfirmModal');
+    const confirmNextNightBtn = document.getElementById('confirmNextNightBtn');
+    const cancelNextNightBtn = document.getElementById('cancelNextNightBtn');
+    const nextNightNumberSpan = document.getElementById('nextNightNumber');
+    
+    function showNextNightConfirm() {
+        if(players.length === 0) {
+            alert("Chưa có người chơi");
+            return;
+        }
+        let nextNight = nightCounter + 1;
+        nextNightNumberSpan.innerText = `Đêm ${nextNight}`;
+        nextNightConfirmModal.style.display = 'flex';
+    }
+    
+    function hideNextNightConfirm() {
+        nextNightConfirmModal.style.display = 'none';
+    }
     
     const customConfirm = document.getElementById('customConfirm'), confirmMessage = document.getElementById('confirmMessage');
     const confirmYesBtn = document.getElementById('confirmYesBtn'), confirmNoBtn = document.getElementById('confirmNoBtn');
@@ -838,6 +897,7 @@
     closeRoleListBtn.onclick = hideRoleListModal;
     roleListModal.onclick = (e) => { if(e.target === roleListModal) hideRoleListModal(); };
     
+    // Lưu snapshot của ĐẦU ĐÊM HIỆN TẠI (trước khi các hành động diễn ra)
     function saveNightSnapshot() {
         nightSnapshot = {
             players: players.map(p => ({
@@ -863,14 +923,22 @@
                 coupleTargetId1: p.coupleTargetId1,
                 coupleTargetId2: p.coupleTargetId2
             })),
-            roleCheckStatus: JSON.parse(JSON.stringify(roleCheckStatus))
+            roleCheckStatus: JSON.parse(JSON.stringify(roleCheckStatus)),
+            nightCounter: nightCounter  // Lưu thêm số đêm
         };
-        addNoteEvent(`📸 Đã lưu snapshot đêm ${nightCounter}`);
+        addNoteEvent(`📸 Đã lưu snapshot đầu đêm ${nightCounter}`);
     }
     
+    // Khôi phục snapshot của ĐẦU ĐÊM HIỆN TẠI (reset về trạng thái đầu đêm)
     function restoreNightSnapshot() {
         if (!nightSnapshot) {
-            addNoteEvent(`⚠️ Không có snapshot để khôi phục!`);
+            addNoteEvent(`⚠️ Không có snapshot để khôi phục! Hãy chắc chắn bạn đã qua đêm ít nhất 1 lần hoặc vào bàn chơi.`);
+            return false;
+        }
+        
+        // Kiểm tra nếu snapshot lưu khác đêm hiện tại (phòng trường hợp)
+        if (nightSnapshot.nightCounter !== nightCounter) {
+            addNoteEvent(`⚠️ Snapshot không tương ứng với đêm hiện tại (Snapshot đêm ${nightSnapshot.nightCounter}, hiện tại đêm ${nightCounter})! Không thể khôi phục.`);
             return false;
         }
         
@@ -902,7 +970,7 @@
         
         roleCheckStatus = JSON.parse(JSON.stringify(nightSnapshot.roleCheckStatus));
         
-        addNoteEvent(`🔄 Đã khôi phục snapshot đêm ${nightCounter} (reset về đầu đêm)`);
+        addNoteEvent(`🔄 Đã khôi phục trạng thái đầu đêm ${nightCounter} (reset về thời điểm bắt đầu đêm này)`);
         renderGameScreen();
         return true;
     }
@@ -1453,13 +1521,13 @@
     
     function updateGameStats() { let dead = players.filter(p=>!p.isAlive).length; gameDeadCount.innerText=dead; gameTotalCount.innerText=players.length; gameNightDisplay.innerText = nightCounter===0?"🌑 Đêm 0":"🌙 Đêm "+nightCounter; }
     
-    function nextNight() { 
-        if(players.length===0) return alert("Chưa có người chơi"); 
-        
+    // Hàm xử lý qua đêm chính - LƯU SNAPSHOT TRƯỚC KHI SANG ĐÊM MỚI
+    function processNextNight() {
+        // Lưu snapshot của đêm HIỆN TẠI (trước khi thay đổi)
         saveNightSnapshot();
         
         nightCounter++; 
-        players.forEach(p=>{ 
+        players.forEach(p => { 
             if (p.isAlive) {
                 p.protected = false;
                 p.isShot = false;
@@ -1486,8 +1554,76 @@
         }); 
         resetRoleCheckStatus();
         addNoteSeparator(`ĐÊM ${nightCounter}`); 
-        renderGameScreen(); 
+        renderGameScreen();
+        hideNextNightConfirm();
+        // Sau khi chuyển sang đêm mới, lưu snapshot cho đêm mới này (để reset trạng thái về đầu đêm mới)
+        saveNightSnapshot();
     }
+    
+    // Reset trạng thái về đầu đêm hiện tại (chỉ khôi phục snapshot đã lưu khi bắt đầu đêm này)
+    function resetCurrentNightState() {
+        if (!nightSnapshot) {
+            addNoteEvent(`⚠️ Không có snapshot để khôi phục!`);
+            alert("Chưa có dữ liệu snapshot! Hãy chắc chắn bạn đã qua đêm ít nhất 1 lần.");
+            return false;
+        }
+        
+        if (nightSnapshot.nightCounter !== nightCounter) {
+            addNoteEvent(`⚠️ Snapshot không khớp với đêm hiện tại! Snapshot đêm ${nightSnapshot.nightCounter}, hiện tại đêm ${nightCounter}`);
+            alert(`Snapshot không khớp! Không thể khôi phục.`);
+            return false;
+        }
+        
+        nightSnapshot.players.forEach(snapPlayer => {
+            const currentPlayer = players.find(p => p.id === snapPlayer.id);
+            if (currentPlayer) {
+                currentPlayer.isAlive = snapPlayer.isAlive;
+                currentPlayer.protected = snapPlayer.protected;
+                currentPlayer.isShot = snapPlayer.isShot;
+                currentPlayer.isPoisoned = snapPlayer.isPoisoned;
+                currentPlayer.isSaved = snapPlayer.isSaved;
+                currentPlayer.isBitten = snapPlayer.isBitten;
+                currentPlayer.coupleWith = snapPlayer.coupleWith;
+                currentPlayer.protectedTargetId = snapPlayer.protectedTargetId;
+                currentPlayer.shotTargetId = snapPlayer.shotTargetId;
+                currentPlayer.poisonTargetId = snapPlayer.poisonTargetId;
+                currentPlayer.saveTargetId = snapPlayer.saveTargetId;
+                currentPlayer.biteTargetId = snapPlayer.biteTargetId;
+                currentPlayer.poisonUsed = snapPlayer.poisonUsed;
+                currentPlayer.poisonUsedNight = snapPlayer.poisonUsedNight;
+                currentPlayer.saveUsed = snapPlayer.saveUsed;
+                currentPlayer.saveUsedNight = snapPlayer.saveUsedNight;
+                currentPlayer.coupleUsed = snapPlayer.coupleUsed;
+                currentPlayer.coupleUsedNight = snapPlayer.coupleUsedNight;
+                currentPlayer.coupleTargetId1 = snapPlayer.coupleTargetId1;
+                currentPlayer.coupleTargetId2 = snapPlayer.coupleTargetId2;
+            }
+        });
+        
+        roleCheckStatus = JSON.parse(JSON.stringify(nightSnapshot.roleCheckStatus));
+        
+        addNoteEvent(`🔄 Đã khôi phục trạng thái đầu đêm ${nightCounter}`);
+        renderGameScreen();
+        return true;
+    }
+    
+    // Gán sự kiện cho modal xác nhận qua đêm
+    nextNightGameBtn.onclick = showNextNightConfirm;
+    confirmNextNightBtn.onclick = () => {
+        if(players.length > 0) {
+            processNextNight();
+        } else {
+            alert("Chưa có người chơi");
+            hideNextNightConfirm();
+        }
+    };
+    cancelNextNightBtn.onclick = hideNextNightConfirm;
+    nextNightConfirmModal.onclick = (e) => { if(e.target === nextNightConfirmModal) hideNextNightConfirm(); };
+    
+    // Gán sự kiện reset trạng thái - KHÔI PHỤC VỀ ĐẦU ĐÊM HIỆN TẠI
+    gameResetStateBtn.onclick = () => {
+        showConfirm("⚠️ RESET TRẠNG THÁI ĐÊM HIỆN TẠI?\n\nHành động này sẽ khôi phục tất cả trạng thái về đúng thời điểm bắt đầu đêm này.\n- Phù thủy sẽ được hoàn lại bình độc/bình cứu (nếu đã dùng trong đêm này)\n- Thần tình yêu sẽ được hoàn lại ghép đôi (nếu đã ghép trong đêm này)\n- Tất cả các hành động bảo vệ, cắn, bắn, độc, cứu trong đêm này sẽ bị reset\n\nBạn có muốn tiếp tục không?", resetCurrentNightState);
+    };
     
     function resetRoles() { 
         players.forEach(p=>{ 
@@ -1547,6 +1683,8 @@
         nightSnapshot = null;
         renderGameScreen(); 
         addNoteSeparator("VÁN MỚI"); 
+        // Lưu snapshot cho đêm 0
+        saveNightSnapshot();
     }
     
     function editPlayers() { if(players.length) tempPlayerList = players.map(p=>p.name); renderTempPlayerList(); showScreen('setup'); addNoteSeparator("CHỈNH SỬA THÀNH VIÊN"); }
@@ -1555,7 +1693,6 @@
     // Hàm đặt lại vai trò về mặc định
     function resetToDefaultRoles() {
         showConfirm("⚠️ BẠN CÓ CHẮC CHẮN?\n\nHành động này sẽ xóa tất cả vai trò đã thêm và khôi phục danh sách vai trò mặc định ban đầu (Ma Sói, Dân Làng, Tiên Tri, Phù Thủy, Bảo Vệ, Thợ Săn, Thần Tình Yêu).\nTất cả các vai trò mặc định sẽ được bật (checked).\n\nBạn có muốn tiếp tục không?", () => {
-            // Khôi phục danh sách mặc định
             const defaultRoles = ["🐺 Ma Sói", "👨‍🌾 Dân Làng", "🔮 Tiên Tri", "🧪 Phù Thủy", "🛡️ Bảo Vệ", "🏹 Thợ Săn", "❤️ Thần Tình Yêu"];
             allRoles = [];
             defaultRoles.forEach((name, idx) => {
@@ -1568,8 +1705,6 @@
     
     resetDefaultRolesBtn.onclick = resetToDefaultRoles;
     
-    nextNightGameBtn.onclick = nextNight;
-    gameResetStateBtn.onclick = ()=>showConfirm("⚠️ Reset đêm hiện tại về trạng thái đầu đêm? (Sẽ hoàn lại bình Phù Thủy và ghép đôi nếu dùng trong đêm này)", restoreNightSnapshot);
     newGameRoundBtn.onclick = ()=>showConfirm("✨ Ván mới? (Reset hết)", newGameRound);
     settingsResetBtn.onclick = ()=>{ resetModal.style.display='flex'; };
     modalEditPlayersBtn.onclick = ()=>{ resetModal.style.display='none'; editPlayers(); };
@@ -1618,11 +1753,12 @@
         }); 
         resetRoleCheckStatus();
         nightCounter=0; 
-        saveNightSnapshot();
         renderGameScreen(); 
         showScreen('game'); 
         addNoteSeparator("VÀO BÀN CHƠI"); 
-        addNoteEvent("🌑 Đêm 0"); 
+        addNoteEvent("🌑 Đêm 0");
+        // Lưu snapshot cho đêm 0 khi vào bàn chơi
+        saveNightSnapshot();
     }
     finishRolesBtn.onclick = finishAndGo;
     function confirmPlayers() { if(tempPlayerList.length===0) return alert("Chưa có thành viên"); players = tempPlayerList.map(n=>({id:Date.now()+Math.random(), name:n, role:null, isAlive:true, protected:false, protectedTargetId:null, isShot:false, shotTargetId:null, isPoisoned:false, poisonTargetId:null, isSaved:false, saveTargetId:null, poisonUsed:false, poisonUsedNight:null, saveUsed:false, saveUsedNight:null, coupleWith:null, coupleTargetId1:null, coupleTargetId2:null, coupleUsed:false, coupleUsedNight:null, isBitten:false, biteTargetId:null})); if(allRoles.length===0) initDefaultRoles(); renderRolesSetup(); showScreen('roles'); addNoteSeparator("CHUYỂN SANG VAI TRÒ"); }
