@@ -777,7 +777,7 @@
 </div>
 
 <script>
-    let players = [], allRoles = [], nightCounter = 0, noteContent = "", timerInterval = null;
+    let players = [], allRoles = [], nightCounter = 1, noteContent = "", timerInterval = null;
     let pendingAction = null;
     let currentProtectorId = null;
     let currentHunterId = null;
@@ -1519,7 +1519,7 @@
         updateGameStats();
     }
     
-    function updateGameStats() { let dead = players.filter(p=>!p.isAlive).length; gameDeadCount.innerText=dead; gameTotalCount.innerText=players.length; gameNightDisplay.innerText = nightCounter===0?"🌑 Đêm 0":"🌙 Đêm "+nightCounter; }
+    function updateGameStats() { let dead = players.filter(p=>!p.isAlive).length; gameDeadCount.innerText=dead; gameTotalCount.innerText=players.length; gameNightDisplay.innerText = nightCounter===1?"🌑 Đêm 1":"🌙 Đêm "+nightCounter; }
     
     // Hàm xử lý qua đêm chính - LƯU SNAPSHOT TRƯỚC KHI SANG ĐÊM MỚI
     function processNextNight() {
@@ -1676,7 +1676,7 @@
             p.isBitten = false;
             p.biteTargetId = null;
         }); 
-        nightCounter=0; 
+        nightCounter=1; 
         noteContent=""; 
         fullscreenNotePad.value=""; 
         resetRoleCheckStatus();
@@ -1752,11 +1752,11 @@
             p.biteTargetId = null;
         }); 
         resetRoleCheckStatus();
-        nightCounter=0; 
+        nightCounter=1; 
         renderGameScreen(); 
         showScreen('game'); 
         addNoteSeparator("VÀO BÀN CHƠI"); 
-        addNoteEvent("🌑 Đêm 0");
+        addNoteEvent("🌑 Đêm 1");
         // Lưu snapshot cho đêm 0 khi vào bàn chơi
         saveNightSnapshot();
     }
